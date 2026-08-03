@@ -26,6 +26,7 @@ executable hs007
     build-depends:
         base ^>=4.19.2.0,
         pretty-simple,
+        mtl,
         hs007
     hs-source-dirs:   app
     default-language: Haskell2010

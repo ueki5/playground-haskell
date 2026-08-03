@@ -3,23 +3,24 @@ module Main where
 import Stack
 
 program :: StackM (Maybe Int, Maybe Int)
--- program = do
---   push 1
---   push 2
---   push 3
---   a <- pop
---   b <- pop
---   push 100
---   pure (a, b)
-program =
+program = do
   push 1
-    >> push 2
-    >> push 3
-    >> pop
-    >>= \a ->
-      pop >>= \b ->
-        push 100
-          >> pure (a, b)
+  push 2
+  push 3
+  a <- pop
+  b <- pop
+  push 100
+  pure (a, b)
+
+-- program =
+--   push 1
+--     >> push 2
+--     >> push 3
+--     >> pop
+--     >>= \a ->
+--       pop >>= \b ->
+--         push 100
+--           >> pure (a, b)
 
 main :: IO ()
 main = do
