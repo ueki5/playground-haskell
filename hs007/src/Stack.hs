@@ -1,35 +1,38 @@
-module Stack
-  ( StackM
-  , push
-  , pop
-  , peek
-  , isEmpty
-  , runStackM
-  , evalStackM
-  , execStackM
-  ) where
+{-# LANGUAGE FlexibleContexts #-}
+
+module Stack (
+  StackM,
+  push,
+  pop,
+  peek,
+  isEmpty,
+  runStackM,
+  evalStackM,
+  execStackM,
+) where
 
 import Control.Monad.State
 
-type StackM a = State [Int] a
+-- type StackM a = State [Int] a
+type StackM = State [Int]
 
-push :: Int -> StackM ()
+push :: MonadState [Int] m => Int -> m ()
 push x = modify (x :)
 
-pop :: StackM (Maybe Int)
+pop :: MonadState [Int] m => m (Maybe Int)
 pop = do
   s <- get
   case s of
-    []       -> pure Nothing
+    [] -> pure Nothing
     (x : xs) -> put xs >> pure (Just x)
 
-peek :: StackM (Maybe Int)
+peek :: MonadState [Int] m => m (Maybe Int)
 peek = gets safeHead
-  where
-    safeHead []      = Nothing
-    safeHead (x : _) = Just x
+ where
+  safeHead [] = Nothing
+  safeHead (x : _) = Just x
 
-isEmpty :: StackM Bool
+isEmpty :: MonadState [Int] m => m Bool
 isEmpty = gets null
 
 runStackM :: StackM a -> (a, [Int])
