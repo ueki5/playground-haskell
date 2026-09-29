@@ -53,7 +53,7 @@ common warnings
 library
     import:           warnings
     exposed-modules:  UpperCase
-    build-depends:    base ^>=4.19.2.0
+    build-depends:    base >=4.19.2.0 && <4.21
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -66,7 +66,7 @@ executable hs001
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.19.2.0,
+        base >=4.19.2.0 && <4.21,
         hs001,
         optparse-applicative,
         attoparsec,
@@ -83,7 +83,7 @@ test-suite hs001-test
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     build-depends:
-        base ^>=4.19.2.0,
+        base >=4.19.2.0 && <4.21,
         hs001,
         hspec
     hs-source-dirs:   test

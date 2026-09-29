@@ -14,7 +14,7 @@ library
     import:           warnings
     exposed-modules:  Stack
     build-depends:
-        base ^>=4.19.2.0,
+        base >=4.19.2.0 && <4.21,
         pretty-simple,
         mtl
     hs-source-dirs:   src
@@ -24,7 +24,7 @@ executable hs007
     import:           warnings
     main-is:          Main.hs
     build-depends:
-        base ^>=4.19.2.0,
+        base >=4.19.2.0 && <4.21,
         pretty-simple,
         mtl,
         hs007
@@ -36,7 +36,7 @@ test-suite hs007-test
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     build-depends:
-        base ^>=4.19.2.0,
+        base >=4.19.2.0 && <4.21,
         hs007,
         pretty-simple,
         mtl,
