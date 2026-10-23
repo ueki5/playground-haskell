@@ -34,7 +34,8 @@ run2 i = do
 
 main :: IO ()
 main = do
-  r1 <- run1  r2 <- runExceptT (run2 2)
+  r1 <- run1 3
+  r2 <- runExceptT (run2 1)
   print $ case (r1, r2) of
     (Right n1, Right n2) -> Right (n1 + n2)
     (Right _, Left e2) -> Left e2
