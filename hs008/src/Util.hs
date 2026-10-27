@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 -- | ExceptT の仕組みを理解するための自前実装。
 -- mtl / transformers の ExceptT と同じ構造を最小限で書いている。
 module Util
@@ -6,6 +9,7 @@ module Util
   , catchE'
   ) where
 
+import Control.Monad.Except (MonadError (..))
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Trans (MonadTrans (..))
 
@@ -49,3 +53,8 @@ catchE' (ExceptT' m) h = ExceptT' $ do
   case ea of
     Left e -> runExceptT' (h e)
     Right a -> pure (Right a)
+
+-- mtl スタイル（MonadError e m => ...）で書いた関数を ExceptT' で実行できるようにする
+instance Monad m => MonadError e (ExceptT' e m) where
+  throwError = throwE'
+  catchError = catchE'
