@@ -43,18 +43,18 @@ run3 i = do
   pure (x + y)
 
 -- mtl スタイル：具体的な型ではなく「エラーを投げられること」だけを要求する
-step1' :: MonadError String m => Int -> m Int
+step1' :: (MonadError String m) => Int -> m Int
 step1' x
   | x >= 0 = pure (x - 1)
   | otherwise = throwError "minus value!"
 
-step2' :: MonadError String m => Int -> m Int
+step2' :: (MonadError String m) => Int -> m Int
 step2' x
   | x >= 0 = pure (x - 2)
   | otherwise = throwError "minus value!"
 
 -- ExceptT で包む必要がない。どのモナドで動かすかは呼び出し側が決める
-run4 :: MonadError String m => Int -> m Int
+run4 :: (MonadError String m) => Int -> m Int
 run4 i = do
   x <- step1' i
   y <- step2' x

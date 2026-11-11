@@ -1,16 +1,17 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Calc (
-  CalcError (..),
-  CalcM,
-  push,
-  pop,
-  safeDiv,
-  evalToken,
-  evalRPN,
-  runCalcM,
-  calc,
-) where
+module Calc
+  ( CalcError (..),
+    CalcM,
+    push,
+    pop,
+    safeDiv,
+    evalToken,
+    evalRPN,
+    runCalcM,
+    calc,
+  )
+where
 
 import Control.Monad.Except
 import Control.Monad.State
@@ -29,7 +30,7 @@ data CalcError
 -- その時点までのスタック（状態）は失われずに残る。
 type CalcM = ExceptT CalcError (State [Int])
 
-push :: MonadState [Int] m => Int -> m ()
+push :: (MonadState [Int] m) => Int -> m ()
 push x = modify (x :)
 
 -- 空スタックからの pop は Maybe ではなく throwError で失敗させる
@@ -40,7 +41,7 @@ pop = do
     [] -> throwError StackUnderflow
     (x : xs) -> put xs >> pure x
 
-safeDiv :: MonadError CalcError m => Int -> Int -> m Int
+safeDiv :: (MonadError CalcError m) => Int -> Int -> m Int
 safeDiv _ 0 = throwError DivByZero
 safeDiv x y = pure (x `div` y)
 

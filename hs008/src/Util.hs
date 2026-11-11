@@ -4,22 +4,23 @@
 -- | ExceptT の仕組みを理解するための自前実装。
 -- mtl / transformers の ExceptT と同じ構造を最小限で書いている。
 module Util
-  ( ExceptT' (..)
-  , throwE'
-  , catchE'
-  ) where
+  ( ExceptT' (..),
+    throwE',
+    catchE',
+  )
+where
 
 import Control.Monad.Except (MonadError (..))
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Trans (MonadTrans (..))
 
 -- ExceptT' の正体は「m (Either e a)」を包んだだけの newtype。
-newtype ExceptT' e m a = ExceptT' { runExceptT' :: m (Either e a) }
+newtype ExceptT' e m a = ExceptT' {runExceptT' :: m (Either e a)}
 
-instance Functor m => Functor (ExceptT' e m) where
+instance (Functor m) => Functor (ExceptT' e m) where
   fmap f (ExceptT' m) = ExceptT' (fmap (fmap f) m)
 
-instance Monad m => Applicative (ExceptT' e m) where
+instance (Monad m) => Applicative (ExceptT' e m) where
   pure a = ExceptT' (pure (Right a))
   ExceptT' mf <*> ExceptT' ma = ExceptT' $ do
     ef <- mf
@@ -28,7 +29,7 @@ instance Monad m => Applicative (ExceptT' e m) where
       Right f -> fmap (fmap f) ma
 
 -- 肝はここ：Main.hs の run1 で手書きしていた case を >>= が肩代わりする
-instance Monad m => Monad (ExceptT' e m) where
+instance (Monad m) => Monad (ExceptT' e m) where
   ExceptT' m >>= k = ExceptT' $ do
     ea <- m
     case ea of
@@ -39,15 +40,15 @@ instance Monad m => Monad (ExceptT' e m) where
 instance MonadTrans (ExceptT' e) where
   lift m = ExceptT' (fmap Right m)
 
-instance MonadIO m => MonadIO (ExceptT' e m) where
+instance (MonadIO m) => MonadIO (ExceptT' e m) where
   liftIO = lift . liftIO
 
 -- 失敗させる：Left を返すだけ
-throwE' :: Monad m => e -> ExceptT' e m a
+throwE' :: (Monad m) => e -> ExceptT' e m a
 throwE' e = ExceptT' (pure (Left e))
 
 -- 失敗を捕まえる：Left のときだけハンドラに処理を渡す
-catchE' :: Monad m => ExceptT' e m a -> (e -> ExceptT' e' m a) -> ExceptT' e' m a
+catchE' :: (Monad m) => ExceptT' e m a -> (e -> ExceptT' e' m a) -> ExceptT' e' m a
 catchE' (ExceptT' m) h = ExceptT' $ do
   ea <- m
   case ea of
@@ -55,6 +56,6 @@ catchE' (ExceptT' m) h = ExceptT' $ do
     Right a -> pure (Right a)
 
 -- mtl スタイル（MonadError e m => ...）で書いた関数を ExceptT' で実行できるようにする
-instance Monad m => MonadError e (ExceptT' e m) where
+instance (Monad m) => MonadError e (ExceptT' e m) where
   throwError = throwE'
   catchError = catchE'

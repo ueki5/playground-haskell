@@ -9,9 +9,9 @@ import System.IO (hClose, hPutStr, openTempFile)
 import System.Process (callProcess)
 
 data Options = Options
-  { sourceFile :: FilePath
-  , outputFile :: FilePath
-  , asmFile    :: Maybe FilePath
+  { sourceFile :: FilePath,
+    outputFile :: FilePath,
+    asmFile :: Maybe FilePath
   }
 
 optionsParser :: Parser Options
@@ -42,5 +42,5 @@ main = do
       hClose tmpHandle
       asmPath <- case asmFile opts of
         Just path -> renameFile tmpPath path >> return path
-        Nothing   -> return tmpPath
+        Nothing -> return tmpPath
       callProcess "gcc" [asmPath, "-o", outputFile opts]

@@ -7,14 +7,16 @@ main :: IO ()
 main = hspec $ do
   describe "push / pop" $ do
     it "popはLIFO順で値を返す" $
-      evalStackM (do
-        push 1
-        push 2
-        push 3
-        a <- pop
-        b <- pop
-        c <- pop
-        pure [a, b, c])
+      evalStackM
+        ( do
+            push 1
+            push 2
+            push 3
+            a <- pop
+            b <- pop
+            c <- pop
+            pure [a, b, c]
+        )
         `shouldBe` [Just 3, Just 2, Just 1]
     it "pushは状態（スタック）の先頭に値を積む" $
       execStackM (push 1 >> push 2) `shouldBe` [2, 1]
@@ -29,12 +31,14 @@ main = hspec $ do
 
   describe "peek / isEmpty" $ do
     it "peekは先頭を覗くだけで取り除かない" $
-      runStackM (do
-        push 1
-        push 2
-        a <- peek
-        b <- peek
-        pure (a, b))
+      runStackM
+        ( do
+            push 1
+            push 2
+            a <- peek
+            b <- peek
+            pure (a, b)
+        )
         `shouldBe` ((Just 2, Just 2), [2, 1])
     it "isEmptyはpush後にFalseを返す" $
       evalStackM (push 1 >> isEmpty) `shouldBe` False
