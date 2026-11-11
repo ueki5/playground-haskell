@@ -1,0 +1,6 @@
+# git blame で飛ばす、整形だけのコミット
+# ローカルでは git config blame.ignoreRevsFile ':(optional).git-blame-ignore-revs' で有効にする
+# （:(optional) が無いと、このファイルが無いコミットで git blame がエラーになる）
+
+# ormolu で全ソースを整形
+44ac71c11db4eb941e046de8b1ca8a8b3480a251
