@@ -7,3 +7,4 @@ input/
 output/
 .dist-newstyle-dap/
 .direnv/
+.claude/settings.local.json
