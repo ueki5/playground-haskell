@@ -37,7 +37,7 @@ checkAmount n
   | otherwise = Right ()
 
 deposit :: Account -> Int -> BankM ()
-deposit acc n = do
+deposit _ n = do
   checkAmount n
   Right ()
 
@@ -65,7 +65,7 @@ payAll from = mapM_ (\(to, n) -> transfer from to n)
 
 -- 失敗したときは、指定した口座の残高を実行前の値に戻してから、同じエラーを投げ直す
 withRollback :: [Account] -> BankM a -> BankM a
-withRollback accs m = do
+withRollback _ m = do
   -- saved <- liftIO (mapM readIORef accs) -- ダミー処理（値更新できない為）
   m
 

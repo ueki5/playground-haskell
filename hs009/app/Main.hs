@@ -1,8 +1,9 @@
 module Main where
 
 import Bank
-import Data.IORef (readIORef)
-import GHC.Base (VecElem (Int32ElemRep))
+
+-- import Data.IORef (readIORef)
+-- import GHC.Base (VecElem (Int32ElemRep))
 
 -- 3 つの口座の残高を表示する
 showBalances :: Account -> Account -> Account -> IO ()
@@ -11,8 +12,14 @@ showBalances alice bob carol =
       b = balance bob
       c = balance carol
    in case (a, b, c) of
-        (Right na, Right nb, Right nc) -> putStrLn ("  alice=" ++ show a ++ " bob=" ++ show b ++ " carol=" ++ show c)
-        _ -> putStrLn "unknown"
+        (Right na, Right nb, Right nc) -> putStrLn ("  alice=" ++ show na ++ " bob=" ++ show nb ++ " carol=" ++ show nc)
+        (Right _, Right _, Left ec) -> putStrLn ("  carol=" ++ show ec)
+        (Right _, Left eb, Right _) -> putStrLn ("  bob=" ++ show eb)
+        (Right _, Left eb, Left ec) -> putStrLn ("  bob=" ++ show eb ++ " carol=" ++ show ec)
+        (Left ea, Right _, Right _) -> putStrLn ("  alice=" ++ show ea)
+        (Left ea, Right _, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " carol=" ++ show ec)
+        (Left ea, Left eb, Right _) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb)
+        (Left ea, Left eb, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb ++ " carol=" ++ show ec)
 
 main :: IO ()
 main =
