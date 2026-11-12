@@ -8,20 +8,38 @@ import Bank
 -- 3 つの口座の残高を表示する
 showBalances :: Account -> Account -> Account -> IO ()
 showBalances alice bob carol =
-  let a = balance alice
-      b = balance bob
-      c = balance carol
-   in case (a, b, c) of
-        (Right na, Right nb, Right nc) -> putStrLn ("  alice=" ++ show na ++ " bob=" ++ show nb ++ " carol=" ++ show nc)
-        (Right _, Right _, Left ec) -> putStrLn ("  carol=" ++ show ec)
-        (Right _, Left eb, Right _) -> putStrLn ("  bob=" ++ show eb)
-        (Right _, Left eb, Left ec) -> putStrLn ("  bob=" ++ show eb ++ " carol=" ++ show ec)
-        (Left ea, Right _, Right _) -> putStrLn ("  alice=" ++ show ea)
-        (Left ea, Right _, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " carol=" ++ show ec)
-        (Left ea, Left eb, Right _) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb)
-        (Left ea, Left eb, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb ++ " carol=" ++ show ec)
+  let results = [(name, balance acc) | (name, acc) <- [("alice", alice), ("bob", bob), ("carol", carol)]]
+      errors = [(name, e) | (name, Left e) <- results]
+      oks = [(name, n) | (name, Right n) <- results]
+   in putStrLn ("  " ++ unwords (if null errors then fmt oks else fmt errors))
+  where
+    fmt xs = [name ++ "=" ++ show v | (name, v) <- xs]
 
-main :: IO ()
+-- -- 3 つの口座の残高を表示する（シンプル版)
+-- showBalances alice bob carol =
+--   putStrLn
+--     ( "  "
+--         ++ unwords
+--           [ name ++ "=" ++ either show show (balance acc)
+--           | (name, acc) <- [("alice", alice), ("bob", bob), ("carol", carol)]
+--           ]
+--     )
+
+-- -- 3 つの口座の残高を表示する（パターン列挙版）
+-- showBalances alice bob carol =
+--   let a = balance alice
+--       b = balance bob
+--       c = balance carol
+--    in case (a, b, c) of
+--         (Right na, Right nb, Right nc) -> putStrLn ("  alice=" ++ show na ++ " bob=" ++ show nb ++ " carol=" ++ show nc)
+--         (Right _, Right _, Left ec) -> putStrLn ("  carol=" ++ show ec)
+--         (Right _, Left eb, Right _) -> putStrLn ("  bob=" ++ show eb)
+--         (Right _, Left eb, Left ec) -> putStrLn ("  bob=" ++ show eb ++ " carol=" ++ show ec)
+--         (Left ea, Right _, Right _) -> putStrLn ("  alice=" ++ show ea)
+--         (Left ea, Right _, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " carol=" ++ show ec)
+--         (Left ea, Left eb, Right _) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb)
+--         (Left ea, Left eb, Left ec) -> putStrLn ("  alice=" ++ show ea ++ " bob=" ++ show eb ++ " carol=" ++ show ec)
+
 main =
   let alice = newAccount 100
       bob = newAccount 0

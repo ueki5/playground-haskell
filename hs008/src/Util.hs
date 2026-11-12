@@ -30,7 +30,7 @@ instance (Monad m) => Applicative (ExceptT' e m) where
 
 -- 肝はここ：Main.hs の run1 で手書きしていた case を >>= が肩代わりする
 instance (Monad m) => Monad (ExceptT' e m) where
-  ExceptT' m >>= k = ExceptT' $ do
+  (>>=) (ExceptT' m) k = ExceptT' $ do
     ea <- m
     case ea of
       Left e -> pure (Left e)
