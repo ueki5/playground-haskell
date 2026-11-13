@@ -10,36 +10,36 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
+common language
+    default-language: GHC2024
+
 library
-    import:           warnings
+    import:           warnings, language
     exposed-modules:  Compiler, CodeGen
-    build-depends:    base >=4.19.2.0 && <4.21
+    build-depends:    base >=4.20 && <4.21
     hs-source-dirs:   src
-    default-language: Haskell2010
 
 executable hs006
-    import:           warnings
+    import:           warnings, language
     main-is:          Main.hs
     build-depends:
-        base >=4.19.2.0 && <4.21,
+        base >=4.20 && <4.21,
         hs006,
         optparse-applicative,
         process,
         directory,
         filepath
     hs-source-dirs:   app
-    default-language: Haskell2010
 
 test-suite hs006-test
-    import:           warnings
+    import:           warnings, language
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     build-depends:
-        base >=4.19.2.0 && <4.21,
+        base >=4.20 && <4.21,
         hs006,
         hspec,
         process,
         temporary,
         filepath
     hs-source-dirs:   test
-    default-language: Haskell2010
