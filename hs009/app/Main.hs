@@ -11,6 +11,7 @@ showBalances alice bob carol = do
   c <- readIORef carol
   putStrLn ("  alice=" ++ show a ++ " bob=" ++ show b ++ " carol=" ++ show c)
 
+main :: IO ()
 main = do
   alice <- newAccount 100
   bob <- newAccount 0
