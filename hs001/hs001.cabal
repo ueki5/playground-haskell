@@ -52,23 +52,26 @@ common warnings
 
 common language
     default-language: GHC2024
+    build-depends:    base >=4.20 && <4.21
+
+-- ~/.ghci の interactive-print と、デバッグ中の Pretty Print（nvim-dap）で pretty-simple を使う
+common debug
+    build-depends:    pretty-simple
 
 library
-    import:           warnings, language
+    import:           warnings, language, debug
     exposed-modules:  UpperCase
-    build-depends:    base >=4.20 && <4.21
     hs-source-dirs:   src
 
 executable hs001
     -- Import common warning flags.
-    import:           warnings, language
+    import:           warnings, language, debug
 
     -- .hs or .lhs file containing the Main module.
     main-is:          Main.hs
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base >=4.20 && <4.21,
         hs001,
         optparse-applicative,
         attoparsec,
@@ -78,11 +81,10 @@ executable hs001
     hs-source-dirs:   app
 
 test-suite hs001-test
-    import:           warnings, language
+    import:           warnings, language, debug
     type:             exitcode-stdio-1.0
     main-is:          Spec.hs
     build-depends:
-        base >=4.20 && <4.21,
         hs001,
         hspec
     hs-source-dirs:   test
