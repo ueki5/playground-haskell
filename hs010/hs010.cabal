@@ -1,0 +1,26 @@
+cabal-version:      3.14
+name:               hs010
+version:            0.1.0.0
+license:            NONE
+author:             ueki5
+maintainer:         ueki005@gmail.com
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall
+
+common language
+    default-language: GHC2024
+    build-depends:    base >=4.20 && <4.21
+
+common debug
+    build-depends:    pretty-simple
+
+executable hs010
+    import:           warnings, language, debug
+    main-is:          Main.hs
+    build-depends:
+        mtl,
+        transformers
+    hs-source-dirs:   app
