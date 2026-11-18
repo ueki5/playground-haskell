@@ -1,31 +1,111 @@
 module Main where
 
-import Control.Monad.Except (ExceptT, runExceptT, throwError)
+import Control.Monad.Error.Class
+import Control.Monad.Except (ExceptT, MonadError, runExceptT, throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.State (StateT, get, modify, runStateT)
 import Control.Monad.Trans.Class (lift)
+import Data.Char (isDigit, isSpace)
 import Data.IORef
 import Text.Printf (printf)
 
-data Status = First | Second | Third
+data Token
+  = TInt Int
+  | TPlus
+  deriving (Show, Eq)
 
-type OperateM = StateT Status (Either String)
+data Expr
+  = Lit Int
+  | Add Expr Expr
+  deriving (Show, Eq)
 
-first :: Status
-first = Third
+data Instr
+  = Push Int
+  | IAdd
+  deriving (Show, Eq)
 
-next :: Status -> Either String Status
-next s = case s of
-  First -> Right Second
-  Second -> Right Third
-  _ -> Left "invalid operation"
+-- Lexer
+-- 通常版
+tokenize :: String -> Either String [Token]
+tokenize [] = Right []
+tokenize (c : cs)
+  | isSpace c = tokenize cs
+  | isDigit c =
+      let (digits, rest) = span isDigit (c : cs)
+       in (TInt (read digits) :) <$> tokenize rest
+  | c == '+' = (TPlus :) <$> tokenize cs
+  | otherwise = Left $ "unexpected character = " ++ [c]
+
+-- mtl版
+tokenize' :: (MonadError String m) => String -> m [Token]
+tokenize' [] = pure []
+tokenize' (c : cs)
+  | isSpace c = tokenize' cs
+  | isDigit c =
+      let (digits, rest) = span isDigit (c : cs)
+       in (TInt (read digits) :) <$> tokenize' rest
+  | c == '+' = (TPlus :) <$> tokenize' cs
+  | otherwise = throwError $ "unexpected character = " ++ [c]
+
+-- Parser
+-- 通常版
+parse :: [Token] -> Either String Expr
+parse (TInt n : TPlus : [TInt m]) = Right $ Add (Lit n) (Lit m)
+parse tokens = Left $ "unexpected tokens = " ++ (show tokens)
+
+-- mtl版
+parse' :: (MonadError String m) => [Token] -> m Expr
+parse' (TInt n : TPlus : [TInt m]) = pure $ Add (Lit n) (Lit m)
+parse' tokens = throwError $ "unexpected tokens = " ++ (show tokens)
+
+-- Code generator
+compile :: Expr -> [Instr]
+compile (Lit n) = [Push n]
+compile (Add l r) = compile l ++ compile r ++ [IAdd]
+
+-- Virtual machine
+-- 通常版
+run :: [Instr] -> Either String Int
+run instrs = go instrs []
+  where
+    go [] [v] = Right v
+    go [] _ = Left "invalid stack state after execution"
+    go (Push n : rest) stack = go rest (n : stack)
+    go (IAdd : rest) (b : a : stack) = go rest ((a + b) : stack)
+    go _ _ = Left "stack underflow"
+
+-- mtl版
+run' :: (MonadError String m) => [Instr] -> m Int
+run' instrs = go instrs []
+  where
+    go [] [v] = pure v
+    go [] _ = throwError "invalid stack state after execution"
+    go (Push n : rest) stack = go rest (n : stack)
+    go (IAdd : rest) (b : a : stack) = go rest ((a + b) : stack)
+    go _ _ = throwError "stack underflow"
+
+-- 通常版
+pipeline :: String -> Either String Int
+pipeline input = do
+  tokens <- tokenize input
+  exprs <- parse tokens
+  run $ compile exprs
+
+-- mtl版
+pipeline' :: (MonadError String m) => String -> m Int
+pipeline' input = do
+  tokens <- tokenize' input
+  exprs <- parse' tokens
+  run' (compile exprs)
 
 main :: IO ()
 main = do
-  let status = first
-      count = 1 :: Int
-  putStrLn "!"
+  let input = "1+1"
+      result = pipeline' input
+  case result of
+    Left err -> putStrLn err
+    Right n -> print n
 
 -- type App = ReaderT String (StateT Int (ExceptT String IO))
 --
