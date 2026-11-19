@@ -93,19 +93,35 @@ pipeline input = do
   run $ compile exprs
 
 -- mtl版
-pipeline' :: (MonadError String m) => String -> m Int
+pipeline' :: (MonadError String m, MonadIO m) => String -> m Int
 pipeline' input = do
-  tokens <- tokenize' input
-  exprs <- parse' tokens
-  run' (compile exprs)
+  tokenize' input >>= \tokens ->
+    liftIO (putStrLn (show tokens))
+      >> parse' tokens
+      >>= \exprs ->
+        liftIO (putStrLn (show exprs))
+          >> run' (compile exprs)
+
+-- tokens <- tokenize' input
+-- liftIO $ putStrLn (show tokens)
+-- exprs <- parse' tokens
+-- run' $ compile exprs
 
 main :: IO ()
 main = do
   let input = "1+1"
-      result = pipeline' input
-  case result of
-    Left err -> putStrLn err
+  -- runExceptTの型: IO (Either String Int)
+  r <- runExceptT (pipeline' input)
+  -- either putStrLn print r
+  case r of
     Right n -> print n
+    Left err -> putStrLn err
+
+-- let input = "1+1"
+--     result = pipeline' input
+-- case result of
+--   Left err -> putStrLn err
+--   Right n -> print n
 
 -- type App = ReaderT String (StateT Int (ExceptT String IO))
 --
