@@ -40,15 +40,20 @@ instance MonadLogger App where
 ------------------------------------------------------------
 -- 3. テスト用の具体的な型 TestM：IO を使わず、ログをリストに集める
 ------------------------------------------------------------
-newtype TestM a = TestM (ExceptT String (Writer [String]) a)
+newtype TestM a = TestM (ReaderT Env (ExceptT String (Writer [String])) a)
   deriving newtype
-    (Functor, Applicative, Monad, MonadError String, MonadWriter [String])
+    (Functor, Applicative, Monad, MonadReader Env, MonadError String, MonadWriter [String])
 
-runTestM :: TestM a -> (Either String a, [String])
-runTestM (TestM m) = runWriter (runExceptT m)
+runTestM :: Env -> TestM a -> (Either String a, [String])
+runTestM env (TestM m) = runWriter (runExceptT (runReaderT m env))
 
 instance MonadLogger TestM where
-  logMsg s = tell [s]
+  logMsg s = do
+    verbose <- asks envVerbose
+    prefix <- asks envPrefix
+    if verbose then tell [prefix ++ s] else pure ()
+
+-- logMsg s = tell [s]
 
 ------------------------------------------------------------
 -- 4. 本体：具体的な型を知らない（制約だけを書く）
@@ -112,5 +117,6 @@ main = do
   runApp (Env False "") (pipeline "2+3") >>= print
 
   putStrLn "== TestM（テスト）"
-  print (runTestM (pipeline "1+1"))
-  print (runTestM (pipeline "1+"))
+  print (runTestM (Env True "[log] ") (pipeline "1+1"))
+  print (runTestM (Env True "[log] ") (pipeline "1+"))
+  print (runTestM (Env False "") (pipeline "2+3"))
