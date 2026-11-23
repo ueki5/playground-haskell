@@ -5,9 +5,10 @@ module Main where
 
 import Control.Monad.Except (ExceptT, MonadError, runExceptT, throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Reader (MonadReader, ReaderT, asks, runReaderT)
-import Control.Monad.Writer (MonadWriter, Writer, runWriter, tell)
+import Control.Monad.Reader (MonadReader, Reader, ReaderT, asks, runReader, runReaderT)
+import Control.Monad.Writer (MonadWriter, Writer, WriterT, runWriter, runWriterT, tell)
 import Data.Char (isDigit, isSpace)
+import Data.Functor.Identity (Identity, runIdentity)
 
 ------------------------------------------------------------
 -- 1. 自作の型クラス：操作の名前と型だけを決める
@@ -57,12 +58,12 @@ instance MonadLogger App' where
 ------------------------------------------------------------
 -- 3. テスト用の具体的な型 TestM：IO を使わず、ログをリストに集める
 ------------------------------------------------------------
-newtype TestM a = TestM (ReaderT Env (ExceptT String (Writer [String])) a)
+newtype TestM a = TestM (ReaderT Env (ExceptT String (WriterT [String] Identity)) a)
   deriving newtype
     (Functor, Applicative, Monad, MonadReader Env, MonadError String, MonadWriter [String])
 
 runTestM :: Env -> TestM a -> (Either String a, [String])
-runTestM env (TestM m) = runWriter (runExceptT (runReaderT m env))
+runTestM env (TestM m) = runIdentity (runWriterT (runExceptT (runReaderT m env)))
 
 instance MonadLogger TestM where
   logMsg s = do
@@ -70,7 +71,21 @@ instance MonadLogger TestM where
     prefix <- asks envPrefix
     if verbose then tell [prefix ++ s] else pure ()
 
--- logMsg s = tell [s]
+------------------------------------------------------------
+-- 3'. テスト実験用の具体的な型 TestM'：TestMのReader <-> Writer版
+------------------------------------------------------------
+newtype TestM' a = TestM' (WriterT [String] (ExceptT String (ReaderT Env Identity)) a)
+  deriving newtype
+    (Functor, Applicative, Monad, MonadReader Env, MonadError String, MonadWriter [String])
+
+runTestM' :: Env -> TestM' a -> (Either String (a, [String]))
+runTestM' env (TestM' m) = runIdentity (runReaderT (runExceptT (runWriterT m)) env)
+
+instance MonadLogger TestM' where
+  logMsg s = do
+    verbose <- asks envVerbose
+    prefix <- asks envPrefix
+    if verbose then tell [prefix ++ s] else pure ()
 
 ------------------------------------------------------------
 -- 4. 本体：具体的な型を知らない（制約だけを書く）
@@ -142,3 +157,8 @@ main = do
   print (runTestM (Env True "[log] ") (pipeline "1+1"))
   print (runTestM (Env True "[log] ") (pipeline "1+"))
   print (runTestM (Env False "") (pipeline "2+3"))
+
+  putStrLn "== TestM'（テスト実験）"
+  print (runTestM' (Env True "[log] ") (pipeline "1+1"))
+  print (runTestM' (Env True "[log] ") (pipeline "1+"))
+  print (runTestM' (Env False "") (pipeline "2+3"))
