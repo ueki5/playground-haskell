@@ -38,6 +38,23 @@ instance MonadLogger App where
     if verbose then liftIO (putStrLn (prefix ++ s)) else pure ()
 
 ------------------------------------------------------------
+-- 2'. 実験用の具体的な型 App'（ExceptTとReaderTを逆にしたもの）
+------------------------------------------------------------
+newtype App' a = App' (ExceptT String (ReaderT Env IO) a)
+  deriving newtype
+    (Functor, Applicative, Monad, MonadReader Env, MonadError String, MonadIO)
+
+runApp' :: Env -> App' a -> IO (Either String a)
+runApp' env (App' m) = runReaderT (runExceptT m) env
+
+-- 自作クラスは App' に直接実装する。ExceptT・ReaderT 用のインスタンスは書かない
+instance MonadLogger App' where
+  logMsg s = do
+    verbose <- asks envVerbose
+    prefix <- asks envPrefix
+    if verbose then liftIO (putStrLn (prefix ++ s)) else pure ()
+
+------------------------------------------------------------
 -- 3. テスト用の具体的な型 TestM：IO を使わず、ログをリストに集める
 ------------------------------------------------------------
 newtype TestM a = TestM (ReaderT Env (ExceptT String (Writer [String])) a)
@@ -115,6 +132,11 @@ main = do
   runApp (Env True "[log] ") (pipeline "1+1") >>= print
   runApp (Env True "[log] ") (pipeline "1+") >>= print
   runApp (Env False "") (pipeline "2+3") >>= print
+
+  putStrLn "== App'（実験）"
+  runApp' (Env True "[log] ") (pipeline "1+1") >>= print
+  runApp' (Env True "[log] ") (pipeline "1+") >>= print
+  runApp' (Env False "") (pipeline "2+3") >>= print
 
   putStrLn "== TestM（テスト）"
   print (runTestM (Env True "[log] ") (pipeline "1+1"))
