@@ -11,7 +11,7 @@ import Data.Char (isDigit, isSpace)
 import Data.Functor.Identity (Identity, runIdentity)
 
 ------------------------------------------------------------
--- 1. 自作の型クラス：操作の名前と型だけを決める
+-- 1. 自作の型クラス：文字列をもらってログを吐く
 ------------------------------------------------------------
 class (Monad m) => MonadLogger m where
   logMsg :: String -> m ()
